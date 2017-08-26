@@ -150,14 +150,14 @@ int sqlfunction(char * buffer)
 			count=1;
 			while((row = mysql_fetch_row(query_results))!=0)
 			{	
-				printf("Test in Tuple %d for %s found %s",count, buffer ,row[0]);
+				printf("\nTest in Tuple %d for %s found %s",count, buffer ,row[0]);
 				if(strcmp(buffer , (char*)row[0])==0)
 				{
 					printf("\nAuthenticated\n");
 					return 1;
 				}
 				else
-				printf("FAILED AUTHentication");
+				printf("\nFAILED AUTHentication");
 			}
 		}
 	}
