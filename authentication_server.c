@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <mysql/mysql.h>
 #define PORT 8080 //default port
 
 int sqlfunction(char *);
@@ -101,7 +102,8 @@ void communicate (int sock)
     {
         perror("ERROR accesing DB ");
     
-    }    comflag=write(sock , "I got your message" ,19 );
+    }
+    comflag=write(sock , "I got your message" ,19 );
     if (comflag < 0)
     {
 	    perror("ERROR writing to socket");
@@ -141,15 +143,15 @@ int sqlfunction(char * buffer)
 
 	else
 	{
-		MYSQL_RES *query_results = mysql_close_result(con);
+		MYSQL_RES *query_results = mysql_store_result(con);
 		if (query_results)
 		{
 			MYSQL_ROW row;
 			count=1;
-			while(row = mysql_fetch_row(query_results)!=0)
+			while((row = mysql_fetch_row(query_results))!=0)
 			{	
 				printf("Test in Tuple %d for %s found %s",count, buffer ,row[0]);
-				if(strcmp(buffer , (char*)row[0]))
+				if(strcmp(buffer , (char*)row[0])==0)
 				{
 					printf("\nAuthenticated\n");
 					return 1;
