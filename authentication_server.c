@@ -7,6 +7,8 @@
 #include <string.h>
 #define PORT 8080 //default port
 
+int sqlfunction(char *);
+
 int main(int argc, char const *argv[])
 {
     int server_fd , new_socketfd, pid, flag  , portno , server_length, client_length;
@@ -94,8 +96,12 @@ void communicate (int sock)
 	    exit(EXIT_FAILURE);
     }
     printf("Message from client (ith) :%s\n" , buffer);
+    comflag = sqlfunction(buffer);
+    if(comflag<0)
+    {
+        perror("ERROR accesing DB ");
     
-    comflag=write(sock , "I got your message" ,19 );
+    }    comflag=write(sock , "I got your message" ,19 );
     if (comflag < 0)
     {
 	    perror("ERROR writing to socket");
@@ -103,4 +109,55 @@ void communicate (int sock)
     }
 	
     return;
+}
+
+int sqlfunction(char * buffer)
+{	
+	int count;
+	MYSQL *con = mysql_init(NULL);
+	if (con == NULL)
+	{
+		fprintf(stderr, "%s\n", mysql_error(con));
+		return -1;
+	}
+	if (mysql_real_connect(con, "localhost", "root", "123", NULL, 0, NULL, 0) == NULL) 
+	{
+		fprintf(stderr, "%s\n", mysql_error(con));
+		mysql_close(con);
+		return -1;
+	} 
+	if (mysql_query(con, "USE testdb")) 
+	{
+		fprintf(stderr, "%s\n", mysql_error(con));
+		mysql_close(con);
+		return -1;
+	}
+
+	if(mysql_query(con, "SELECT * FROM login")!=0)
+	{	fprintf(stderr,"%s\n", mysql_error(con));
+		mysql_close(con);
+		return -1;
+	}
+
+	else
+	{
+		MYSQL_RES *query_results = mysql_close_result(con);
+		if (query_results)
+		{
+			MYSQL_ROW row;
+			count=1;
+			while(row = mysql_fetch_row(query_results)!=0)
+			{	
+				printf("Test in Tuple %d for %s found %s",count, buffer ,row[0]);
+				if(strcmp(buffer , (char*)row[0]))
+				{
+					printf("\nAuthenticated\n");
+					return 1;
+				}
+				else
+				printf("FAILED AUTHentication");
+			}
+		}
+	}
+
 }
