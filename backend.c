@@ -16,6 +16,11 @@ int main(int argc, char const *argv[])
     struct sockaddr_in server_address, client_address ;
     //char buffer[1024] = {0};  used that in local buffer of communicate function
     int opt = 1;
+    
+    if (argc < 2)
+    {	fprintf(stderr, "ERROR, no port provided\n");
+	    exit(1);  
+    }
             
     // Creating socket file descriptor
     server_fd = socket(AF_INET , SOCK_STREAM, 0);
@@ -32,7 +37,7 @@ int main(int argc, char const *argv[])
     portno = atoi(argv[1]);
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons( PORT );
+    server_address.sin_port = htons( portno );
     server_length = sizeof(server_address);
     /*// Forcefully attaching socket to the port 8080
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
