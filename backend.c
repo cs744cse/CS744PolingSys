@@ -16,11 +16,6 @@ int main(int argc, char const *argv[])
     struct sockaddr_in server_address, client_address ;
     //char buffer[1024] = {0};  used that in local buffer of communicate function
     int opt = 1;
-    
-    if (argc < 2)
-    {	    fprintf(stderr, "ERROR, no port provided\n");
-	    exit(1);  
-    }
             
     // Creating socket file descriptor
     server_fd = socket(AF_INET , SOCK_STREAM, 0);
