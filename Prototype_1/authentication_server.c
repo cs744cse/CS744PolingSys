@@ -115,8 +115,8 @@ void communicate (int sock)
     else
     {
 	sprintf(msg,"%s","Authenticated");
-	comflag=write(sock , msg ,strlen(msg) );        
 	call_back(buffer);
+	comflag=write(sock , buffer ,strlen(buffer) );
     }	
     
     if (comflag < 0)
