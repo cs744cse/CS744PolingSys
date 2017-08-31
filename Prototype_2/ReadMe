@@ -1,1 +1,8 @@
 backend with buffer maintained 
+
+
+DB used 
+
+testdb==>login<table>==>data from login.txt
+
+LOAD DATA LOCAL INFILE 'file path' INTO TABLE login<tablename>
