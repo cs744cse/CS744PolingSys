@@ -124,8 +124,10 @@ char* sqlfunction(char * buffer , char* data,int size)
 	int count,flag;
     MYSQL *con = mysql_init(NULL);
     strncpy(region,buffer,size);
-    region[size]='\0';
+    printf("%d",size);
+    region[size-1]='\0';
     printf("Checkpoint 1");
+    printf("\n%s:%d",region,strlen(region));
     
 	if (con == NULL)
 	{   printf("Test1");
@@ -145,9 +147,9 @@ char* sqlfunction(char * buffer , char* data,int size)
 		return NULL;
     }
     printf("test4");
-    char query[100] = "SELECT id,name FROM candidates WHERE region='MUMBAI'";
-    // strcat(query,region);
-    // strcat(query,"'");
+    char query[100] = "SELECT id,name FROM candidates WHERE region='";
+    strcat(query,region);
+    strcat(query,"'");
     printf("%s",query);
 
 	if(mysql_query(con, query)!=0)
