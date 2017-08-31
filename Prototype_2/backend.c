@@ -171,7 +171,7 @@ char* sqlfunction(char * buffer , char* data,int size)
 				
 				// if(strncmp(buffer , (char*)row[0],12)==0)
 				// {
-                    printf("\nFound %s\t%s",row[0],row[1]);
+                    // printf("\nFound %s\t%s",row[0],row[1]);
                     data = makedata(row[0],row[1],data);
 					count++;
             }
@@ -179,6 +179,7 @@ char* sqlfunction(char * buffer , char* data,int size)
         }
         if(count==0)
         return NULL;
+        printf("\n%s",data);
         return data;
 	}
 
@@ -195,8 +196,8 @@ char * makedata(char* data1, char* data2 , char* data)
     // strcpy(data,temp);
     strcat(data,data1);
     strcat(data,data2);
-    printf("%s\n",data);
-    //strcat(data,"$");
+    // printf("%s\n",data);
+    strcat(data,"$");
     
     return data;
 }
