@@ -2,4 +2,4 @@ Phase 1 with fork proper working
 
 mysqldump -u <username> -p testdb > /path/testdb.sql
 
-mysqldump -u <username> -p testdb < /path/testdb.sql
+mysql -u <username> -p testdb < /path/testdb.sql
