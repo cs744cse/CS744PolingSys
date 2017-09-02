@@ -231,7 +231,7 @@ int sqlfunction2(char * buffer)
 		fprintf(stderr, "%s\n", mysql_error(con));
 		return -1;
 	}
-	if (mysql_real_connect(con, "localhost", "guptas", "cs744iitb", NULL, 0, NULL, 0) == NULL) 
+	if (mysql_real_connect(con, LOCAL_HOST, USER, PASSWD, NULL, 0, NULL, 0) == NULL) 
 	{   
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
