@@ -7,6 +7,9 @@
 #include <string.h>
 #include <mysql/mysql.h>
 #define PORT 8080 //default port
+#define SQLUSERNAME "guptas"
+#define SQLP "cs744iitb"
+#define SQLDB "USE testdb"
 
 char * sqlfunction(char *, char*,int );
 char * makedata(char *,char*,char*);
@@ -17,7 +20,6 @@ int main(int argc, char const *argv[])
 {
     int server_fd , new_socketfd, pid, flag  , portno , server_length, client_length;
     struct sockaddr_in server_address, client_address ;
-    //char buffer[1024] = {0};  used that in local buffer of communicate function
     int opt = 1;
     
     if (argc < 2)
@@ -93,7 +95,6 @@ void communicate (int sock)
     char inbuffer[20];
     memset(inbuffer,'\0',sizeof(inbuffer));
     char* outbuffer = (char*)malloc(4096 * sizeof(char));
-    // memset(outbuffer, '\0', sizeof(outbuffer));
 
     comflag = read(sock, inbuffer , 20);
     if(comflag<0)
@@ -150,43 +151,40 @@ char* sqlfunction(char * buffer , char* data,int size)
 	int count,flag;
     MYSQL *con = mysql_init(NULL);
     strncpy(region,buffer,size);
-    printf("%d",size);
+    //printf("%d",size);
     region[size]='\0';
-    //printf("Checkpoint 1");
-    printf("\n%s:%d",region,strlen(region));
+    //printf("\n%s:%d",region,strlen(region));
     
 	if (con == NULL)
-	{   //printf("Test1");
+	{  
 		fprintf(stderr, "%s\n", mysql_error(con));
 		return NULL;
 	}
-	if (mysql_real_connect(con, "localhost", "guptas", "cs744iitb", NULL, 0, NULL, 0) == NULL) 
-	{   //printf("Test2");
+	if (mysql_real_connect(con, LOCAL_HOST, SQLUSERNAME, SQLP, NULL, 0, NULL, 0) == NULL) 
+	{ 
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
 		return NULL;
 	} 
-	if (mysql_query(con, "USE testdb")) 
-	{   //printf("test3");
+	if (mysql_query(con, SQLDB )) 
+	{   
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
 		return NULL;
     }
-    // printf("test4");
     char query[100] = "SELECT id,name FROM candidates WHERE region='";
     strcat(query,region);
     strcat(query,"'");
-    // printf("%s",query);
 
 	if(mysql_query(con, query)!=0)
-	{	//printf("test5");
+	{	
         fprintf(stderr,"%s\n", mysql_error(con));
 		mysql_close(con);
 		return NULL;
 	}
 	
 	else
-	{   //printf("test6");
+	{   
 		MYSQL_RES *query_results = mysql_store_result(con);
 		if (query_results)
 		{
@@ -200,10 +198,9 @@ char* sqlfunction(char * buffer , char* data,int size)
                         
         }
         mysql_close(con);
-        // free(region);
         if(count==0)
-        return NULL;
-        printf("\n%s",data);
+            return NULL;
+
         return data;
 	}
 
@@ -213,14 +210,9 @@ char * makedata(char* data1, char* data2 , char* data)
 {   int len = strlen(data);
     int len1 = strlen(data1);
     int len2 = strlen(data2);
-    
-    // char * temp = malloc(len * sizeof(char));
-    // strcpy(temp,data);
     data = (char*)realloc(data,(len + len1 + len2)*sizeof(char));
-    // strcpy(data,temp);
     strcat(data,data1);
     strcat(data,data2);
-    // printf("%s\n",data);
     strcat(data,"$");
     
     return data;
@@ -233,35 +225,29 @@ int sqlfunction2(char * buffer)
     char id[2];
     MYSQL *con = mysql_init(NULL);
     sscanf(buffer,"%s %s",id, region);
-    // printf("Checkpoint 1");
-    printf("\nUpdaring Votes for id : %s\tregion : %s\n",id,region);
+    printf("\nUpdating Votes for candidate : %s in region : %s\n",id,region);
     
 	if (con == NULL)
-	{   //printf("Test1");
+	{   
 		fprintf(stderr, "%s\n", mysql_error(con));
 		return -1;
 	}
-	if (mysql_real_connect(con, "localhost", "guptas", "cs744iitb", NULL, 0, NULL, 0) == NULL) 
-	{   //printf("Test2");
+	if (mysql_real_connect(con, "localhost", SQLUSERNAME, SQLP, NULL, 0, NULL, 0) == NULL) 
+	{   
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
 		return -1;
 	} 
-	if (mysql_query(con, "USE testdb")) 
-	{   //printf("test3");
+	if (mysql_query(con, SQLDB)) 
+	{   
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
 		return -1;
     }
-    // printf("test4");
-    // char query[100] = "SELECT votes FROM candidates WHERE id='";
-    // strcat(query,id);
-    // strcat(query,"'");
-    // printf("%s",query);
+
     sprintf(query,"UPDATE candidates SET votes = votes + 1 WHERE id= '%s' AND region = '%s'",id,region);
-    // printf("\n%s",query);
 	if(mysql_query(con, query)!=0)
-	{	//printf("test5");
+	{
         fprintf(stderr,"%s\n", mysql_error(con));
 		mysql_close(con);
 		return -1;
@@ -269,34 +255,4 @@ int sqlfunction2(char * buffer)
     
     mysql_close(con);
     return 1;
-    
-    // sprintf(query,"SELECT votes FROM candidates WHERE id= '%s' AND region = '%s'",id,region);
-    // if(mysql_query(con, query)!=0)
-	// {	//printf("test5");
-    //     fprintf(stderr,"%s\n", mysql_error(con));
-	// 	mysql_close(con);
-	// 	return NULL;
-	// }
-	// else
-	// {   //printf("test6");
-	// 	MYSQL_RES *query_results = mysql_store_result(con);
-	// 	if (query_results)
-	// 	{
-	// 		MYSQL_ROW row;
-	// 		count=0;
-	// 		while((row = mysql_fetch_row(query_results))!=0)
-	// 		{	
-	// 			    printf("%s",row[0]);
-	// 				count++;
-    //         }
-                        
-    //     }
-    //     mysql_close(con);
-    //     // free(region);
-    //     if(count==0)
-    //     return NULL;
-    //     printf("\n%s",data);
-    //     return data;
-	// }
-
 }
