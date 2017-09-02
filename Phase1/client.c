@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
     
-    printf("Please enter the message: ");
+    printf("Enter Your VOTER ID (12 Digits):");
     
     bzero(buffer,256);
     fgets(buffer,255,stdin);
@@ -60,7 +60,12 @@ int main(int argc, char *argv[])
     verif[n] = '\0';
     if(!(strcmp(verif,"FAILED")))
     {
-        printf("Authentication Failed.\nPlease Retry.\n");
+        printf("Authentication Failed\n");
+        exit(1);
+    }
+    else if(!(strcmp(verif,"ALREADY VOTED")))
+    {
+        printf("Already Voted.\n");
         exit(1);
     }
     printf("Region : ");
@@ -82,7 +87,7 @@ int main(int argc, char *argv[])
     char ch[2];
     printf("\nChoose Your Candidate : ");
      scanf("%d",&choice);
-     if(choice > count)
+     if(choice > count || choice < 1)
      {
          error("Invalid Selection");
          exit(1);

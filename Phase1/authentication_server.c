@@ -8,18 +8,24 @@
 #include <mysql/mysql.h>
 #include <netdb.h>
 #define PORT 8080 //default port
+#define SQLUSERNAME "guptas"
+#define SQLP "cs744iitb"
+#define SQLDB "USE testdb"
+#define BACKEND argv[2]
 
 int sqlfunction(char *);
-int connection_to_back();
-
+int connection_to_back(char *);
+void read_write(int , char *);
 int main(int argc, char const *argv[])
 {
     int server_fd , new_socketfd, pid, portno, flag , server_length, client_length;
     struct sockaddr_in server_address, client_address ;
     int opt = 1;
+	char  backend[20];
+	strcpy(backend,argv[2]);
     
-    if (argc < 2)
-    {	    fprintf(stderr, "ERROR, no port provided\n");
+    if (argc < 3)
+    {	    fprintf(stderr, "ERROR, no port provided or backend IP not provided n\n");
 	    exit(1);  
     }
             
@@ -67,7 +73,7 @@ int main(int argc, char const *argv[])
         
 	if(pid == 0)
 	{	close(server_fd);
-	 	communicate(new_socketfd);
+	 	communicate(new_socketfd,backend);
 	 	exit(0);
 	}
         
@@ -77,7 +83,7 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-void communicate (int sock)
+void communicate (int sock, char *backend)
 {
     int comflag=0;
     char buffer[256];
@@ -92,7 +98,8 @@ void communicate (int sock)
 	    perror("ERROR reading from socket");
 	    exit(EXIT_FAILURE);
     }
-    printf("Message from client (ith) :%s\n" , buffer);
+    printf("Message from client :%s\n" , buffer);
+
     comflag = sqlfunction(buffer);
     if(comflag<0)
     {
@@ -101,21 +108,30 @@ void communicate (int sock)
     }
     else if(comflag == 0)
     {
-	sprintf(msg,"%s","FAILED");
-	comflag=write(sock , msg ,strlen(msg) );
-	printf("\nWaiting for new client\n");
+        sprintf(msg,"%s","FAILED");
+        comflag=write(sock , msg ,strlen(msg) );
+											for(int i=0;i<10;i++)
+												printf("==");
+        printf("\nSome Intruder Tried Login.\n");
+    }
+    else if(comflag == 2)
+    {
+        sprintf(msg,"%s","ALREADY VOTED");
+        comflag=write(sock , msg ,strlen(msg) );
+											for(int i=0;i<10;i++)
+												printf("==");
+        printf("\nSomeone Tried to vote Again.\n");
     }
     else
     {
-        comflag=write(sock , buffer ,strlen(buffer) );
-        sock_id = connection_to_back();
-	    call_back(sock_id,buffer);
-        comflag=write(sock , buffer ,strlen(buffer) );
-        // bzero(buffer,256);
-        
-        comflag = read(sock,buffer1,256);
-        call_back(sock_id, buffer1);
-        comflag = write(sock,buffer1,strlen(buffer1));
+        comflag=write(sock , buffer ,strlen(buffer) );								//writing Region to client
+        sock_id = connection_to_back(backend);									//creating connection with backend
+	    read_write(sock_id,buffer);										//reading and writing with backend (list fetching)
+        comflag=write(sock , buffer ,strlen(buffer) );								//writing the list to client
+        // bzero(buffer,256);	
+        comflag = read(sock,buffer1,256);									//reading Clients response 
+        read_write(sock_id, buffer1);										//reading and writing back RESPONSE to Backend. 
+        comflag = write(sock,buffer1,strlen(buffer1));								//Giving Back the acknowledgment to client 
     }	
     
     if (comflag < 0)
@@ -137,13 +153,13 @@ int sqlfunction(char * buffer)
 		fprintf(stderr, "%s\n", mysql_error(con));
 		return -1;
 	}
-	if (mysql_real_connect(con, "localhost", "guptas", "cs744iitb", NULL, 0, NULL, 0) == NULL) 
+	if (mysql_real_connect(con, LOCAL_HOST , SQLUSERNAME, SQLP, NULL, 0, NULL, 0) == NULL) 
 	{
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
 		return -1;
 	} 
-	if (mysql_query(con, "USE testdb")) 
+	if (mysql_query(con, SQLDB)) 
 	{
 		fprintf(stderr, "%s\n", mysql_error(con));
 		mysql_close(con);
@@ -151,6 +167,8 @@ int sqlfunction(char * buffer)
     }
 
  char query[100] = "SELECT region FROM login WHERE id ='";
+ char query1[100];
+ unsigned int num_rows;
  strncpy(id,buffer,12);
  id[12] = '\0';
  strcat(query, id);
@@ -170,16 +188,30 @@ int sqlfunction(char * buffer)
             MYSQL_ROW row;
 			if((row = mysql_fetch_row(query_results))!=0)
 			{	
-                printf("Client Authenticated.\n");
-                strcpy(buffer, row[0]);
+											for(int i=0;i<10;i++)
+												printf("==");
+                printf("\nClient Authenticated.\n");
+                sprintf(query1,"UPDATE login SET voted = '1' WHERE id = '%s' AND voted = '0'",id);
+                if(mysql_query(con, query1)!=0)
+                {	fprintf(stderr,"%s\n", mysql_error(con));
+                    mysql_close(con);
+                    return -1;
+                }
+                num_rows = mysql_affected_rows(con);
+                if(num_rows != 0)
+                { strcpy(buffer, row[0]);
                 return 1;
+                }
+                else{
+                    return 2;
+                }
             }
 			return 0;    			//No result found; 
 		}
 	}
 }
 
-int connection_to_back()
+int connection_to_back(char *backend)
 {
     int sockfd, n;
     struct sockaddr_in serv_addr;
@@ -188,7 +220,7 @@ sockfd = socket(AF_INET, SOCK_STREAM, 0);
     
     if (sockfd < 0) 
         error("ERROR opening socket");
-    server = gethostbyname("localhost");
+    server = gethostbyname(backend);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
@@ -203,7 +235,7 @@ sockfd = socket(AF_INET, SOCK_STREAM, 0);
         error("ERROR connecting");
     return sockfd;
 }
-void call_back(int sockfd, char *buffer)
+void read_write(int sockfd, char *buffer)
 {
     int n;
     n = write(sockfd,buffer,strlen(buffer));
