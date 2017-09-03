@@ -19,12 +19,7 @@
 -- Table structure for table `candidates`
 --
 
-DROP TABLE IF EXISTS `candidates`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
 
-
---
 -- Table structure for table `login`
 --
 
@@ -45,7 +40,7 @@ CREATE TABLE `login` (
 
 LOCK TABLES `login` WRITE;
 /*!40000 ALTER TABLE `login` DISABLE KEYS */;
-INSERT INTO `login` VALUES ('789456123000','AHMEDNAGAR',0),
+INSERT INTO `login` VALUES
 ('789456123001','POWAI',0),
 ('789456123002','AMRAVATI',0),
 ('789456123003','AKOLA',0),
