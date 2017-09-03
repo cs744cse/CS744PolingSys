@@ -1,3 +1,5 @@
 CS 744: Design and Engineering of Computing Systems
 
 Autumn 2017
+
+https://www.lucidchart.com/
